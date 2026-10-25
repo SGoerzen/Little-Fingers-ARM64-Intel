@@ -37,11 +37,16 @@ make run        # build and launch
 make install    # build and copy to /Applications (override with INSTALL_DIR=…)
 make uninstall  # remove from /Applications
 make zip        # build and package as build/Little-Fingers.zip
+make dmg        # build and package as build/Little-Fingers.dmg (drag-to-Applications installer)
 make clean      # remove build artifacts
 make signing-cert  # create the local signing certificate (once)
 ```
 
 The built app lands in `build/DerivedData/Build/Products/<Configuration>/Little Fingers.app`. You can also open `Little Fingers.xcodeproj` in Xcode and run the **Little Fingers** scheme.
+
+### Releases
+
+Pushing a version tag (for example `git tag v1.3 && git push origin v1.3`) runs the **Release** GitHub Actions workflow. It builds the app and publishes a GitHub release with `Little-Fingers-<tag>.zip` and `Little-Fingers-<tag>.dmg` attached. CI builds are signed ad hoc and aren't notarized, so on first launch users need to allow the app under **System Settings → Privacy & Security → Open Anyway**.
 
 ### Code signing and Accessibility
 

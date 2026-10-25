@@ -1,0 +1,33 @@
+# Builds the app and publishes a GitHub release with the zip and DMG attached
+# whenever a version tag (e.g. v1.3) is pushed. CI has no local signing
+# certificate, so release builds are signed ad hoc and are not notarized.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build zip and DMG
+        run: make zip dmg
+
+      - name: Check architectures
+        run: lipo -archs "build/DerivedData/Build/Products/Release/Little Fingers.app/Contents/MacOS/Little Fingers"
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          mv build/Little-Fingers.zip "build/Little-Fingers-$TAG.zip"
+          mv build/Little-Fingers.dmg "build/Little-Fingers-$TAG.dmg"
+          gh release create "$TAG" --title "Little Fingers $TAG" --generate-notes \
+            "build/Little-Fingers-$TAG.zip" "build/Little-Fingers-$TAG.dmg"

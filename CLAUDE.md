@@ -14,6 +14,7 @@ make debug        # Debug build
 make run          # build + open the app
 make install      # copy to /Applications (INSTALL_DIR=… to override)
 make zip          # build/Little-Fingers.zip via ditto
+make dmg          # build/Little-Fingers.dmg via hdiutil (app + Applications symlink)
 make clean        # rm -rf build/
 ```
 
@@ -31,7 +32,7 @@ To see runtime output, run the executable directly instead of using `open`:
   `+listen` and `+ignore` swap which tap's run-loop source is active. A change in lock state posts the `SINotificationLockChanged` notification, which `StatusItemController` observes to swap the `on`/`off` template icon. The lock is paused automatically on screensaver, shutdown and logout through distributed notifications. The `L` key is a hard-coded key code (37), so the chord depends on the keyboard layout.
 - **Accessibility permission gates everything.** `CGEventTapCreate` returns NULL without it, and `TapController.init` then calls `exit(1)`. For that reason `AppDelegate` creates the `TapController` only when `TapController.isAccessibilityEnabled()` is true. Otherwise `StatusItemController` shows the system permission prompt, checks every 0.5 s, and relaunches the app (`restartApp`) once permission is granted.
 - **`StatusItemController.swift`** owns the menu-bar item, its menu, and the About window. **`AboutWindowController`** handles the "launch at login" checkbox and keeps it in sync with the `autoLaunch` user default.
-- **`LoginItems.m`** uses the long-deprecated `LSSharedFileList` API, with its warnings suppressed. Swift reaches the Objective-C classes through `Little Fingers-Bridging-Header.h`.
+- **`LoginItems.m`** uses `SMAppService.mainAppService` on macOS 13+. On macOS 12 it falls back to the deprecated `LSSharedFileList` API (warnings suppressed), which no longer works on current macOS. Swift reaches the Objective-C classes through `Little Fingers-Bridging-Header.h`.
 - `AppDelegate` sets the `.accessory` activation policy and hides any visible `NSPanel` windows when the app resigns active or the status menu opens.
 
 ## Gotchas
