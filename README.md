@@ -37,6 +37,7 @@ make run        # build and launch
 make install    # build and copy to /Applications (override with INSTALL_DIR=…)
 make uninstall  # remove from /Applications
 make zip        # build and package as build/Little-Fingers.zip
+make dmg        # build and package as build/Little-Fingers.dmg (drag-to-Applications installer)
 make clean      # remove build artifacts
 make signing-cert  # create the local signing certificate (once)
 ```

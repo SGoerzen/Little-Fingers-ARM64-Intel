@@ -7,11 +7,10 @@
 //
 
 #import "LoginItems.h"
+#import <ServiceManagement/ServiceManagement.h>
 
-// TODO: this code is deprecated, consider using SMLoginItemSetEnabled
-// http://martiancraft.com/blog/2015/01/login-items/
-// https://github.com/kgn/LaunchAtLoginHelper
-// https://developer.apple.com/library/content/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/CreatingLoginItems.html#//apple_ref/doc/uid/10000172i-SW5-SW1
+// macOS 13+ uses SMAppService. The LSSharedFileList fallback below is only
+// used on macOS 12, where SMAppService isn't available.
 
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -19,6 +18,10 @@
 @implementation LoginItems
 +(BOOL)appAlreadyExists
 {
+	if (@available(macOS 13.0, *)) {
+		return SMAppService.mainAppService.status == SMAppServiceStatusEnabled;
+	}
+
 	BOOL found = NO;  
 	UInt32 seedValue;
 	CFURLRef thePath = NULL;
@@ -51,6 +54,14 @@
 }
 +(void)addApp
 {
+	if (@available(macOS 13.0, *)) {
+		NSError *error = nil;
+		if (![SMAppService.mainAppService registerAndReturnError:&error]) {
+			NSLog(@"Little Fingers: could not add login item: %@", error);
+		}
+		return;
+	}
+
 	NSString * appPath = [[NSBundle mainBundle] bundlePath];
 	LSSharedFileListRef theLoginItemsRefs = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
 
@@ -63,6 +74,14 @@
 
 +(void)removeApp
 {
+	if (@available(macOS 13.0, *)) {
+		NSError *error = nil;
+		if (![SMAppService.mainAppService unregisterAndReturnError:&error]) {
+			NSLog(@"Little Fingers: could not remove login item: %@", error);
+		}
+		return;
+	}
+
 	NSString * appPath = [[NSBundle mainBundle] bundlePath];
 	LSSharedFileListRef theLoginItemsRefs = LSSharedFileListCreate(NULL, kLSSharedFileListSessionLoginItems, NULL);
 

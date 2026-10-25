@@ -15,7 +15,7 @@ XCODEBUILD := xcodebuild \
 	-derivedDataPath "$(DERIVED_DATA)" \
 	-destination 'generic/platform=macOS'
 
-.PHONY: all build debug release run install uninstall zip clean signing-cert help
+.PHONY: all build debug release run install uninstall zip dmg clean signing-cert help
 
 all: build
 
@@ -28,6 +28,7 @@ help:
 	@echo "  install    Build and copy the app to $(INSTALL_DIR)"
 	@echo "  uninstall  Remove the app from $(INSTALL_DIR)"
 	@echo "  zip        Build and package the app as build/Little-Fingers.zip"
+	@echo "  dmg        Build and package the app as build/Little-Fingers.dmg"
 	@echo "  clean      Remove build artifacts"
 	@echo "  signing-cert  Create the local signing certificate (once)"
 
@@ -63,6 +64,19 @@ uninstall:
 zip: build
 	ditto -c -k --keepParent "$(PRODUCT)" "$(BUILD_DIR)/Little-Fingers.zip"
 	@echo "Packaged: $(BUILD_DIR)/Little-Fingers.zip"
+
+# Disk image with the app and an Applications shortcut for drag-and-drop install.
+DMG_STAGING := $(BUILD_DIR)/dmg
+
+dmg: build
+	rm -rf "$(DMG_STAGING)" "$(BUILD_DIR)/Little-Fingers.dmg"
+	mkdir -p "$(DMG_STAGING)"
+	ditto "$(PRODUCT)" "$(DMG_STAGING)/$(APP_NAME)"
+	ln -s /Applications "$(DMG_STAGING)/Applications"
+	hdiutil create -volname "Little Fingers" -srcfolder "$(DMG_STAGING)" \
+		-fs HFS+ -format UDZO -ov "$(BUILD_DIR)/Little-Fingers.dmg"
+	rm -rf "$(DMG_STAGING)"
+	@echo "Packaged: $(BUILD_DIR)/Little-Fingers.dmg"
 
 clean:
 	rm -rf "$(BUILD_DIR)"
